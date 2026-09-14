@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+#
+# Copyright (C) 2026 Jason Benjamin
+#
+# This file is part of bashgen.
+#
+# bashgen is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# bashgen is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with bashgen. If not, see <https://www.gnu.org/licenses/>.
+
+import sys
+import tempfile
+import subprocess
+import requests
+
+helpmessage = """
+bashgen - Generate Bash scripts with generative AI
+
+Usage: bashgen [OPTIONS] REQUEST
+
+Options:
+--help Show this help
+--sh Generate standard sh instead
+--no-run No execute, just display
+--save FILE Save the script to FILE
+
+"""
+
+no_run = False
+shell = "Bash"
+filename = ""
+phrase = ""
+
+api_key = ""  #insert free.ai api key here or it won't work
+
+url = "https://api.free.ai/v1/chat/completions"
+
+headers = {
+    "Authorization": "Bearer " + api_key,
+    "Content-Type": "application/json"
+}
+
+args = iter(sys.argv[1:])
+
+for arg in args:
+    if arg.startswith('--'):
+        option = arg[2:]
+        if option == 'help':
+            print(helpmessage)
+            sys.exit()
+        elif option == 'no-run':
+            no_run = True
+        elif option == 'sh':
+            shell = "POSIX /bin/sh"
+        elif option == 'save':
+            try:
+                filename = next(args)
+                if filename.startswith('--'):
+                    print("Error: --save requires a filename.")
+                    sys.exit(1)
+            except StopIteration:
+                print("Error: --save requires a filename.")
+                sys.exit(1)
+        else:
+            print("Invalid option:", arg)
+            sys.exit(1)
+    else:
+        phrase = phrase + " " + arg
+
+if not filename:
+    tmp_file = tempfile.NamedTemporaryFile()
+    filename = tmp_file.name
+
+system_instruction = "Generate a valid " + shell + " shell script. " + \
+    "Output only the shell script. " + \
+    "Do not use Markdown code fences. " + \
+    "Do not include explanations or commentary. " + \
+    "Do not execute anything."
+
+messages = [
+    {"role": "system", "content": system_instruction},
+    {"role": "user", "content": phrase}
+]
+
+# Two models are 'qwen7b' and 'qwen3-8b'
+data = {
+    "model": "qwen7b",
+    "messages": messages
+}
+
+response = requests.post(url, headers=headers, json=data)
+
+
+output = response.json()["choices"][0]["message"]["content"].strip('```')
+
+if shell == "Bash":
+    if subprocess.run(["bash", "-n"], input=output, text=True).returncode != 0:
+        print("Error: User not generating a valid shell script (bash).")
+        sys.exit()
+else:
+    if subprocess.run(["sh", "-n"], input=output, text=True).returncode != 0:
+        print("Error: User not generating a valid shell script (sh).")
+        sys.exit()
+
+prompt = """Analyze this shell script.
+Explain what it will do, including files it may create,
+modify, move, or delete. Identify potentially destructive
+operations. Do not execute it.
+
+Here is the script:
+
+""" + output
+
+data["messages"] = [
+    {"role": "user", "content": prompt}
+]
+
+response = requests.post(url, headers=headers, json=data)
+
+explanation = response.json()["choices"][0]["message"]["content"].strip('```')
+
+print(output)
+print()
+print(explanation)
