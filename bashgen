@@ -40,7 +40,7 @@ shell = "Bash"
 filename = ""
 phrase = ""
 
-api_key = ""  #insert free.ai api key here or it won't work
+api_key = ""  # insert free.ai api key here or it won't work
 
 url = "https://api.free.ai/v1/chat/completions"
 
@@ -76,6 +76,11 @@ for arg in args:
     else:
         phrase = phrase + " " + arg
 
+if not phrase.strip():
+    print("Error: No request was provided.")
+    print(helpmessage)
+    sys.exit(1)
+
 if not filename:
     tmp_file = tempfile.NamedTemporaryFile()
     filename = tmp_file.name
@@ -98,9 +103,15 @@ data = {
 }
 
 response = requests.post(url, headers=headers, json=data)
+result = response.json()
 
+if "choices" not in result:
+    print("Error from API:")
+    print(result)
+    sys.exit(1)
 
-output = response.json()["choices"][0]["message"]["content"].strip('```')
+output = result["choices"][0]["message"]["content"].strip("```")
+
 
 if shell == "Bash":
     if subprocess.run(["bash", "-n"], input=output, text=True).returncode != 0:
@@ -114,7 +125,7 @@ else:
 prompt = """Analyze this shell script.
 Explain what it will do, including files it may create,
 modify, move, or delete. Identify potentially destructive
-operations. Do not execute it.
+operations. Do so as concisely as possible and do not execute it.
 
 Here is the script:
 
@@ -131,3 +142,20 @@ explanation = response.json()["choices"][0]["message"]["content"].strip('```')
 print(output)
 print()
 print(explanation)
+
+if no_run:
+    sys.exit()
+
+select = input("Execute this script? [y/N] ")
+
+if select.lower() == 'y':
+    with open(filename, 'w') as file:
+        file.write(output)
+
+    if shell == "Bash":
+        subprocess.run(["bash", filename])
+    else:
+        subprocess.run(["sh", filename])
+
+
+
