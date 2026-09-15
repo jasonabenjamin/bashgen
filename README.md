@@ -19,6 +19,7 @@ Generate Bash shell scripts from natural-language requests using AI.
 api_key = "YOUR_API_KEY"
 ```
 
+And make sure it is executable: 
 ```bash
 chmod +x bashgen
 ```
