@@ -38,6 +38,7 @@ Options:
 no_run = False
 shell = "Bash"
 filename = ""
+save = False
 phrase = ""
 
 api_key = ""  # insert free.ai api key here or it won't work
@@ -67,6 +68,7 @@ for arg in args:
                 if filename.startswith('--'):
                     print("Error: --save requires a filename.")
                     sys.exit(1)
+                save = True
             except StopIteration:
                 print("Error: --save requires a filename.")
                 sys.exit(1)
@@ -144,6 +146,9 @@ print()
 print(explanation)
 
 if no_run:
+    if save:
+        with open(filename, 'w') as file:
+            file.write(output)
     sys.exit()
 
 select = input("Execute this script? [y/N] ")
@@ -156,6 +161,8 @@ if select.lower() == 'y':
         subprocess.run(["bash", filename])
     else:
         subprocess.run(["sh", filename])
-
+elif save: 
+    with open(filename, 'w') as file:
+        file.write(output)
 
 
