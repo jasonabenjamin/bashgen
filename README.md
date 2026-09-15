@@ -21,7 +21,7 @@ api_key = "YOUR_API_KEY"
 
 4. Run `bashgen` with your request:
 
-`chmod +x bashgen`
+```chmod +x bashgen```
 
 ```bash
 ./bashgen "create a backup of my home directory"
