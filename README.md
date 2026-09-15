@@ -19,12 +19,12 @@ Generate Bash shell scripts from natural-language requests using AI.
 api_key = "YOUR_API_KEY"
 ```
 
-4. Run `bashgen` with your request:
-
 ```bash
 chmod +x bashgen
 ```
 
+
+4. Run `bashgen` with your request:
 ***Example:***
 ```bash
 ./bashgen "create a backup of my home directory"
