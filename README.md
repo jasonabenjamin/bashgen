@@ -34,11 +34,11 @@ chmod +x bashgen
 
 ### Options
 
-```text
+`
 --help
 --sh
 --no-run
 --save FILE
-```
+`
 
 You must have a Free.ai API key for bashgen to work.
