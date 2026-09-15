@@ -1,11 +1,11 @@
 # bashgen
 
-Generate Bash or POSIX shell scripts from natural-language requests using AI.
+Generate Bash shell scripts from natural-language requests using AI.
 
 ## Requirements
 
-- Linux
-- Python 3
+- Linux or other Unix compatible
+- Python 3  (comes with Linux)
 - Internet connection
 - A free.ai API key
 
@@ -20,6 +20,8 @@ api_key = "YOUR_API_KEY"
 ```
 
 4. Run `bashgen` with your request:
+
+`chmod +x bashgen`
 
 ```bash
 ./bashgen "create a backup of my home directory"
