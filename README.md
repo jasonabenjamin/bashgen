@@ -26,7 +26,8 @@ chmod +x bashgen
 
 
 4. Run `bashgen` with your request:
-***Example:***
+
+***example:***
 ```bash
 ./bashgen "create a backup of my home directory"
 ```
